@@ -51,7 +51,7 @@ from videoutils import (
     # 视频处理函数
     modify_md5, mute_video, remove_head_tail_frames, drop_frames,
     speed_up_video, mirror_video, adjust_color, rotate_video, blur_region, adjust_fps,
-    scale_video,
+    scale_video, random_movement,
     
     # 通用函数
     clear_output_folder
@@ -218,7 +218,14 @@ def process_pipeline(input_path, output_folder, enable_steps=None):
             
             if Config.ENABLE_FPS:
                 video = adjust_fps(video)
-                
+                    
+            if Config.ENABLE_MOVEMENT:
+                try:
+                    video = random_movement(video)
+                except Exception as e:
+                    print(f"警告: 应用随机移动效果时出错: {str(e)}")
+                    # 继续处理，不中断流程
+
             if Config.ENABLE_SCALE:
                 try:
                     video = scale_video(video)
@@ -299,7 +306,7 @@ def process_pipeline(input_path, output_folder, enable_steps=None):
             print(f"步骤3: 视觉效果增强")
             
             # 添加黑色边框
-            if Config.BORDER.ENABLE_BORDER:
+            if Config.ENABLE_BORDER:
                 try:
                     video = add_black_border(video)
                 except Exception as e:
@@ -307,7 +314,7 @@ def process_pipeline(input_path, output_folder, enable_steps=None):
                     # 继续处理，不中断流程
             
             # 添加移动线条
-            if Config.LINE.ENABLE_LINES:
+            if Config.ENABLE_LINES:
                 try:
                     video = add_moving_line(video)
                 except Exception as e:

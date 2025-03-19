@@ -1465,7 +1465,7 @@ def add_black_border(video_clip):
         VideoClip: 添加黑色边框后的视频片段
     """
     opacity1 = 0
-    if Config.BORDER.ENABLE_BORDER:
+    if Config.ENABLE_BORDER:
         opacity1 = Config.BORDER.BORDER_OPACITY
 
     
@@ -1527,7 +1527,7 @@ def add_moving_line(video_clip):
         VideoClip: 添加移动线条后的视频片段
     """
     # 如果未启用线条效果，直接返回原视频
-    if not Config.LINE.ENABLE_LINES:
+    if not Config.ENABLE_LINES:
         return video_clip
     
     # 获取视频尺寸
@@ -1623,6 +1623,138 @@ def add_moving_line(video_clip):
     print(f"添加移动线条: 宽度={Config.LINE.LINE_WIDTH}px, 透明度={Config.LINE.LINE_OPACITY}, 速度={Config.LINE.LINE_SPEED}/10, 移动区域=中间2/3")
     
     return line_clip
+
+@process_time
+def random_movement(video_clip):
+    """对视频应用随机移动效果
+    
+    视频会随机向一个方向移动一定距离，然后移动回原始位置，
+    然后继续选择一个随机方向移动。
+    
+    Args:
+        video_clip: 输入视频
+        
+    Returns:
+        VideoClip: 处理后的视频
+    """
+    from config import Config
+    import random
+    import math
+    import numpy as np
+    import cv2
+    import logging
+    
+    if not Config.ENABLE_MOVEMENT:
+        return video_clip
+    
+    logging.info("应用随机移动效果...")
+    
+    # 获取配置参数
+    max_distance = Config.MOVEMENT.MAX_DISTANCE
+    min_distance = Config.MOVEMENT.MIN_DISTANCE
+    move_speed = Config.MOVEMENT.MOVE_SPEED
+    min_interval = Config.MOVEMENT.MIN_INTERVAL
+    max_interval = Config.MOVEMENT.MAX_INTERVAL
+    
+    # 获取视频宽度和高度
+    width, height = video_clip.size
+    
+    # 计算单次移动持续时间
+    move_duration = 1.0 / move_speed
+    
+    # 生成移动时间点（确保每次移动完成后才开始下一次移动）
+    duration = video_clip.duration
+    current_time = 0
+    movement_times = []
+    movements = []
+    
+    # 计算首次移动的开始时间
+    start_delay = random.uniform(0.5, 2.0)  # 添加一个初始延迟，避免视频一开始就移动
+    current_time = start_delay
+    
+    while current_time < duration:
+        # 只有当前时间小于视频持续时间，才添加这个移动点
+        if current_time < duration:
+            # 随机选择移动方向（角度）
+            angle = random.uniform(0, 2 * math.pi)
+            # 使用固定距离而不是随机距离，保持移动幅度一致
+            distance = max_distance  # 使用最大距离，不再随机
+            # 计算x和y方向的位移
+            dx = int(distance * math.cos(angle))
+            dy = int(distance * math.sin(angle))
+            
+            logging.info(f"时间 {current_time:.2f}s: 生成移动 - 距离={distance:.1f}px, 方向={angle:.2f}rad")
+            
+            # 添加移动时间点和移动向量
+            movement_times.append(current_time)
+            movements.append((dx, dy))
+            
+            # 计算下一次移动的开始时间
+            # 确保当前移动完成后（包括返回原位）再开始下一次移动
+            wait_interval = random.uniform(min_interval, max_interval)
+            
+            # 下一次移动的开始时间 = 当前时间 + 移动持续时间 + 等待间隔
+            current_time += move_duration + wait_interval
+        else:
+            break
+    
+    logging.info(f"生成了 {len(movements)} 个随机移动点")
+    
+    def get_movement(t):
+        """根据当前时间计算应用的移动位移"""
+        # 查找当前应该执行的移动
+        current_movement_index = -1
+        for i, move_time in enumerate(movement_times):
+            # 如果当前时间在这个移动的时间范围内（开始时间到开始时间+持续时间）
+            if move_time <= t < move_time + move_duration:
+                current_movement_index = i
+                break
+        
+        # 如果没有找到当前移动，返回零位移
+        if current_movement_index == -1:
+            return 0, 0
+        
+        # 获取当前移动的开始时间和位移向量
+        move_time = movement_times[current_movement_index]
+        dx, dy = movements[current_movement_index]
+        
+        # 计算当前移动的进度
+        time_since_move_start = t - move_time
+        
+        # 移动分两个阶段：前半段移动到最远点，后半段返回原位
+        if time_since_move_start <= move_duration / 2:
+            # 移动到最远点阶段
+            progress = time_since_move_start / (move_duration / 2)
+            return int(dx * progress), int(dy * progress)
+        else:
+            # 返回原位阶段
+            progress = (time_since_move_start - move_duration / 2) / (move_duration / 2)
+            return int(dx * (1 - progress)), int(dy * (1 - progress))
+    
+    def move_frame(get_frame, t):
+        """应用移动效果到当前帧"""
+        # 获取原始帧
+        frame = get_frame(t)
+        
+        # 计算当前位移
+        shift_x, shift_y = get_movement(t)
+        
+        if shift_x == 0 and shift_y == 0:
+            return frame
+        
+        # 创建平移矩阵
+        M = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
+        
+        # 应用平移
+        moved_frame = cv2.warpAffine(frame, M, (width, height))
+        
+        return moved_frame
+    
+    # 创建新视频剪辑
+    moved_clip = video_clip.fl(move_frame)
+    
+    logging.info("随机移动效果应用完成")
+    return moved_clip
 
 @process_time
 def process_video_with_effects(input_path, output_path):

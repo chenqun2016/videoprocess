@@ -150,7 +150,7 @@ class BorderConfig:
     
     # 边框透明度 (0-1)
     BORDER_OPACITY = 0.94        # 完全不透明
-    ENABLE_BORDER = False         # 是否启用边框效果
+    
 
 # ===== 移动线条配置 =====
 class LineConfig:
@@ -162,8 +162,18 @@ class LineConfig:
     
     # 线条移动属性
     LINE_SPEED = 8              # 线条移动速度（1-10）
-    ENABLE_LINES = True         # 是否启用线条效果
+    
 
+# ===== 画面移动配置 =====
+class MovementConfig:
+    """画面随机移动配置"""
+    # 移动基本属性
+    MAX_DISTANCE = 5           # 最大移动距离（像素）
+    MIN_DISTANCE = 10           # 最小移动距离（像素）（保留但不再使用）
+    MOVE_SPEED = 0.5            # 移动速度（0.1-1.0，值越大速度越快）
+    # 移动间隔配置
+    MIN_INTERVAL = 0.0          # 最小移动间隔（秒）
+    MAX_INTERVAL = 0.4          # 最大移动间隔（秒）
 
 # ===== 功能开关配置 =====
 class FeatureFlags:
@@ -181,6 +191,9 @@ class Config:
     ENABLE_TRANSITIONS: bool = False    # 是否启用过渡帧功能
     ENABLE_SCALE: bool = True         # 是否启用视频放大功能
 
+    ENABLE_BORDER = False         # 是否启用边框效果
+    ENABLE_LINES = False         # 是否启用线条效果
+
     ENABLE_FRAME_DROP_HEAD_END: bool = True    # 是否启用删除首尾帧功能
 
     ENABLE_FRAME_DROP: bool = True    # 是否启用删帧功能
@@ -194,6 +207,7 @@ class Config:
     ENABLE_ROTATE: bool = True        # 是否启用旋转功能
     ENABLE_BLUR: bool = True          # 是否启用模糊功能
     ENABLE_FPS: bool = True           # 是否启用帧率调整功能
+    ENABLE_MOVEMENT: bool = True       # 是否启用画面随机移动功能
     
 
     # 子配置类
@@ -203,6 +217,7 @@ class Config:
     TRANSITION = TransitionConfig
     BORDER = BorderConfig      # 边框配置
     LINE = LineConfig          # 线条配置
+    MOVEMENT = MovementConfig  # 画面移动配置
     
     # process8.py 配置类
     FEATURE_FLAGS = FeatureFlags
