@@ -1650,14 +1650,17 @@ def random_movement(video_clip):
     logging.info("应用随机移动效果...")
     
     # 获取配置参数
-    max_distance = Config.MOVEMENT.MAX_DISTANCE
-    min_distance = Config.MOVEMENT.MIN_DISTANCE
+    max_distance_ratio = Config.MOVEMENT.MAX_DISTANCE_RATIO
     move_speed = Config.MOVEMENT.MOVE_SPEED
     min_interval = Config.MOVEMENT.MIN_INTERVAL
     max_interval = Config.MOVEMENT.MAX_INTERVAL
     
     # 获取视频宽度和高度
     width, height = video_clip.size
+    
+    # 根据视频宽度计算实际移动距离（像素）
+    max_distance = int(width * max_distance_ratio)
+    logging.info(f"视频宽度: {width}px, 计算得到最大移动距离: {max_distance}px")
     
     # 计算单次移动持续时间
     move_duration = 1.0 / move_speed
@@ -1675,8 +1678,13 @@ def random_movement(video_clip):
     while current_time < duration:
         # 只有当前时间小于视频持续时间，才添加这个移动点
         if current_time < duration:
-            # 随机选择移动方向（角度）
-            angle = random.uniform(0, 2 * math.pi)
+            # 限制移动方向主要在水平方向（左右）
+            # 随机选择0度或180度，添加很小的垂直偏移
+            horizontal_direction = random.choice([0, math.pi])  # 0度(右)或180度(左)
+            # 可以添加很小的垂直偏移（±15度以内）使移动更自然
+            vertical_offset = random.uniform(-0.26, 0.26)  # ±15度的弧度值约为±0.26
+            angle = horizontal_direction + vertical_offset
+            
             # 使用固定距离而不是随机距离，保持移动幅度一致
             distance = max_distance  # 使用最大距离，不再随机
             # 计算x和y方向的位移

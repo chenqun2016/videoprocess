@@ -218,6 +218,12 @@ def process_pipeline(input_path, output_folder, enable_steps=None):
             
             if Config.ENABLE_FPS:
                 video = adjust_fps(video)
+
+            if Config.ENABLE_SCALE:
+                try:
+                    video = scale_video(video)
+                except Exception as e:
+                    print(f"警告: 应用放大效果时出错: {str(e)}")
                     
             if Config.ENABLE_MOVEMENT:
                 try:
@@ -226,11 +232,7 @@ def process_pipeline(input_path, output_folder, enable_steps=None):
                     print(f"警告: 应用随机移动效果时出错: {str(e)}")
                     # 继续处理，不中断流程
 
-            if Config.ENABLE_SCALE:
-                try:
-                    video = scale_video(video)
-                except Exception as e:
-                    print(f"警告: 应用放大效果时出错: {str(e)}")
+            
                     # 继续处理，不中断流程
         
         # 步骤2: 高级编码优化 (process8.py)

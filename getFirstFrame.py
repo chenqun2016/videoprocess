@@ -37,7 +37,7 @@ def get_first_frame(video_path, save_path):
 
 def main():
     # 定义目录路径
-    video_dir = "result2"
+    video_dir = "input"
     picture_dir = "picture"
     
     # 清空picture文件夹

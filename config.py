@@ -28,8 +28,8 @@ class FrameConfig:
     DROP_COUNT_MAX_NORMAL: int = 1    # 正常情况下每次最多丢弃帧数。建议范围：1-2
     
     # 特殊删帧数量
-    DROP_COUNT_MIN_SPECIAL: int = 4   # 特殊情况下每次最少丢弃帧数。建议范围：4-5
-    DROP_COUNT_MAX_SPECIAL: int = 4   # 特殊情况下每次最多丢弃帧数。建议范围：4-5
+    DROP_COUNT_MIN_SPECIAL: int = 1   # 特殊情况下每次最少丢弃帧数。建议范围：4-5
+    DROP_COUNT_MAX_SPECIAL: int = 1   # 特殊情况下每次最多丢弃帧数。建议范围：4-5
     
     # 特殊删帧间隔
     DROP_SPECIAL_INTERVAL: int = 3    # 每隔多少次进行一次特殊删帧。例如：3表示每第3次删帧时使用特殊删帧数量
@@ -52,7 +52,7 @@ class EffectConfig:
 
     BLUR_REGION_MIN: float = 0.05     # 模糊区域最小比例。建议范围：0.05-0.15
     BLUR_REGION_MAX: float = 0.1     # 模糊区域最大比例。建议范围：0.15-0.25
-    BLUR_SIGMA: float = 0.3          # 高斯模糊强度。建议范围：0.5-2.0
+    BLUR_SIGMA: float = 0.2          # 高斯模糊强度。建议范围：0.5-2.0
 
 class TransitionConfig:
     """过渡效果配置"""
@@ -168,12 +168,11 @@ class LineConfig:
 class MovementConfig:
     """画面随机移动配置"""
     # 移动基本属性
-    MAX_DISTANCE = 5           # 最大移动距离（像素）
-    MIN_DISTANCE = 10           # 最小移动距离（像素）（保留但不再使用）
-    MOVE_SPEED = 0.5            # 移动速度（0.1-1.0，值越大速度越快）
+    MAX_DISTANCE_RATIO = 0.005    # 最大移动距离（相对于视频宽度的比例，如0.005表示宽度的0.5%）
+    MOVE_SPEED = 1.0            # 移动速度（0.1-1.0，值越大速度越快）
     # 移动间隔配置
     MIN_INTERVAL = 0.0          # 最小移动间隔（秒）
-    MAX_INTERVAL = 0.4          # 最大移动间隔（秒）
+    MAX_INTERVAL = 0.1          # 最大移动间隔（秒）
 
 # ===== 功能开关配置 =====
 class FeatureFlags:
@@ -201,14 +200,14 @@ class Config:
 
     ENABLE_SPEED: bool = True         # 是否启用加速功能
     ENABLE_MUTE: bool = True          # 是否启用静音功能
-    ENABLE_COLOR: bool = True         # 是否启用颜色调整功能
     ENABLE_MD5_MODIFY: bool = True    # 是否启用MD5修改功能
-    ENABLE_MIRROR: bool = True        # 是否启用镜像翻转功能
     ENABLE_ROTATE: bool = True        # 是否启用旋转功能
     ENABLE_BLUR: bool = True          # 是否启用模糊功能
     ENABLE_FPS: bool = True           # 是否启用帧率调整功能
     ENABLE_MOVEMENT: bool = True       # 是否启用画面随机移动功能
-    
+
+    ENABLE_COLOR: bool = False         # 是否启用颜色调整功能
+    ENABLE_MIRROR: bool = True        # 是否启用镜像翻转功能
 
     # 子配置类
     VIDEO = VideoConfig
